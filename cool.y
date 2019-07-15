@@ -150,8 +150,6 @@
     %type <expression> expression			/* body of the program */
     
     /* Precedence declarations go here. */
-    /* "The declarations %left and %right ([left and] right associativity) take the place of %token
-     * which is used to declare a token type name without associativity/precedence.
 
     %right ASSIGN
     %left NOT
@@ -197,9 +195,6 @@
     	  | CLASS TYPEID INHERITS TYPEID '{' features_list '}' ';'
     	    	{ $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
     	  ;
-    
-    /* practically, this means the nonterminal features_list can be empty,
-     * but we cannot allow the features nonterminal to call nil_Features() */
     
     features_list : feature 
 		   	{ $$ = single_Features($1); }
@@ -272,10 +267,6 @@
 		{ } 
 
 	;
-	
-    /* one or more expressions, separated by a semicolon
-     * this is not the same as comma-separated expressions (e.g. a list of arguments)
-     */
 
     expressions_smcln_list : expression ';' 
     		      		{ $$ = single_Expressions($1); }
@@ -298,12 +289,8 @@
     				{ $$ = nil_Expressions(); }
 	      		   ;
 
-    /* expressions are the body of the program */
-
     expression : OBJECTID ASSIGN expression 
     		 	{ $$ = assign($1, $3); }
-			
-		/* dispatch: normal, static, omitted self */
 
     	       | expression '@' TYPEID '.' OBJECTID '(' expressions_param_list ')'
     			{ $$ = static_dispatch($1, $3, $5, $7); }
@@ -313,26 +300,18 @@
 
     	       | OBJECTID '(' expressions_param_list ')'
     			{ $$ = dispatch(object(idtable.add_string("Self")), $1, $3); }
-
-		/* control structures */
 		
     	       | IF expression THEN expression ELSE expression FI
     			{ $$ = cond($2, $4, $6); }
 
     	       | WHILE expression LOOP expression POOL 
     			{ $$ = loop($2, $4); }
-			
-		/* block of expression(s) */	
 
     	       | '{' expressions_smcln_list '}' 
     			{ $$ = block($2); }
 
-		/* nested lets */
-
     	       | LET let 
     			{ $$ = $2; }
-			
-		/* Use `case_branch_list` nonterminal to handle one or more cases */
 
     	       | CASE expression OF cases_list ESAC
     			{ $$ = typcase($2, $4); }
@@ -344,8 +323,6 @@
 
     	       | ISVOID expression 
     			{ $$ = isvoid($2); }
-
-		/* operators  */
 
     	       | expression '+' expression
     			{ $$ = plus($1, $3); }
@@ -374,17 +351,11 @@
     	       | NOT expression 
     			{ $$ = comp($2); }
 
-		/* parentheses */
-
     	       | '(' expression ')'
     			{ $$ = $2; }
 
-		/* names */
-
     	       | OBJECTID 
     			{ $$ = object($1); }
-
-		/* literals - strings, numbers, booleans */
 
     	       | INT_CONST
     			{ $$ = int_const($1); }
